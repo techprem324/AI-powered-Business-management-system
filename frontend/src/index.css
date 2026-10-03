@@ -1,0 +1,2 @@
+:root{--serif:'Instrument Serif',Georgia,serif;--sans:'DM Sans','Segoe UI',sans-serif;font-family:var(--sans);color:#272c28;background:#fbfbf7;font-synthesis:none;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-weight:400}
+html{min-width:320px;min-height:100%;scroll-behavior:smooth}body{min-width:320px;min-height:100vh;margin:0}button{font-family:inherit}#root{min-height:100vh}::selection{color:#20382b;background:#d9e7d6}
