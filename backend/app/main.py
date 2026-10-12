@@ -184,7 +184,7 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(
-    title="Northstar Business OS API",
+    title="Velaire Commerce System API",
     version="1.0.0",
     description="Retail billing, inventory, analytics, and explainable ML API.",
     lifespan=lifespan,
@@ -221,7 +221,7 @@ app.add_middleware(
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "service": "northstar-api"}
+    return {"status": "ok", "service": "velaire-api"}
 
 
 @app.post("/api/auth/login", response_model=TokenResponse)

@@ -10,7 +10,6 @@ import {
   ChevronDown,
   CircleHelp,
   Clock3,
-  Command,
   CreditCard,
   Download,
   FileBarChart,
@@ -150,6 +149,25 @@ function getDateLabels(): DateLabels {
   };
 }
 
+function BrandGlyph({ size = 20 }: { size?: number }) {
+  return (
+    <svg
+      aria-hidden="true"
+      width={size}
+      height={size}
+      viewBox="0 0 32 32"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.8"
+    >
+      <path d="m5.5 12 10.5-7 10.5 7v9l-10.5 6-10.5-6v-9Z" />
+      <path d="m5.8 12.2 10.2 6 10.2-6M16 18.2V27M11.2 9.1l4.8 2.8 4.8-2.8" />
+    </svg>
+  );
+}
+
 function LoginScreen({
   onLogin,
   onSignup,
@@ -165,8 +183,8 @@ function LoginScreen({
 }) {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("manager@example.com");
-  const [password, setPassword] = useState("Demo123!");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [accountType, setAccountType] = useState<"user" | "admin">("user");
   const [adminSignupCode, setAdminSignupCode] = useState("");
@@ -202,10 +220,15 @@ function LoginScreen({
   return (
     <main className="login-shell">
       <section className="login-panel">
-        <div className="brand-mark brand-mark-large">
-          <Command size={19} strokeWidth={1.8} />
+        <div className="auth-brand">
+          <span className="brand-mark brand-mark-large">
+            <BrandGlyph size={23} />
+          </span>
+          <span className="brand-name">
+            Velaire<span>COMMERCE SYSTEM</span>
+          </span>
         </div>
-        <p className="eyebrow">NORTHSTAR / RETAIL OPERATIONS</p>
+        <p className="eyebrow">RETAIL OPERATIONS, REIMAGINED</p>
         <h1>
           Good business,
           <br />
@@ -214,16 +237,59 @@ function LoginScreen({
         <p className="login-copy">
           Your store, connected from the first sale to the next smart order.
         </p>
-        <div className="auth-mode-tabs" role="tablist" aria-label="Account access">
-          <button type="button" role="tab" aria-selected={mode === "signin"} className={mode === "signin" ? "auth-mode-active" : ""} onClick={() => { setMode("signin"); setError(""); setEmail("manager@example.com"); setPassword("Demo123!"); }}>Sign in</button>
-          <button type="button" role="tab" aria-selected={mode === "signup"} className={mode === "signup" ? "auth-mode-active" : ""} onClick={() => { setMode("signup"); setError(""); setName(""); setEmail(""); setPassword(""); setConfirmPassword(""); setAdminSignupCode(""); }}>Create account</button>
+        <div className="auth-heading">
+          <h2>{mode === "signin" ? "Welcome back" : "Create your account"}</h2>
+          <p>
+            {mode === "signin"
+              ? "Sign in to open your business workspace."
+              : "Get started with connected tools for your business."}
+          </p>
         </div>
-        <button className="google-login-button" type="button" onClick={onGoogleLogin} disabled={!googleEnabled || busy}>
-          <span className="google-g" aria-hidden="true">G</span>
-          Continue with Google
-        </button>
-        {!googleEnabled && <p className="oauth-setup-note">Google sign-in needs OAuth client credentials in the server environment.</p>}
-        <div className="auth-divider"><span>OR USE EMAIL</span></div>
+        <div className="auth-mode-tabs" role="tablist" aria-label="Account access">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === "signin"}
+            className={mode === "signin" ? "auth-mode-active" : ""}
+            onClick={() => {
+              setMode("signin");
+              setError("");
+            }}
+          >
+            Sign in
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === "signup"}
+            className={mode === "signup" ? "auth-mode-active" : ""}
+            onClick={() => {
+              setMode("signup");
+              setError("");
+              setName("");
+              setEmail("");
+              setPassword("");
+              setConfirmPassword("");
+              setAdminSignupCode("");
+            }}
+          >
+            Create account
+          </button>
+        </div>
+        {googleEnabled && (
+          <>
+            <button
+              className="google-login-button"
+              type="button"
+              onClick={onGoogleLogin}
+              disabled={busy}
+            >
+              <span className="google-g" aria-hidden="true">G</span>
+              Continue with Google
+            </button>
+            <div className="auth-divider"><span>OR CONTINUE WITH EMAIL</span></div>
+          </>
+        )}
         <form className="login-form" onSubmit={submit}>
           {mode === "signup" && <label>Full name<input type="text" autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} minLength={2} maxLength={120} required /></label>}
           <label>
@@ -265,7 +331,10 @@ function LoginScreen({
           </button>
         </form>
         <p className="login-hint">
-          <ShieldCheck size={14} /> {mode === "signin" ? "Demo account prefilled. Change credentials before deployment." : "New user accounts have cashier access. Admin access requires an invitation."}
+          <ShieldCheck size={14} />
+          {mode === "signin"
+            ? "Your business workspace, securely connected."
+            : "New accounts have cashier access. Admin access requires an invitation."}
         </p>
       </section>
       <aside className="login-aside">
@@ -278,7 +347,7 @@ function LoginScreen({
           <div className="orbit orbit-b" />
           <div className="orbit orbit-c" />
           <span className="orbit-center">
-            <Command size={26} />
+            <BrandGlyph size={34} />
           </span>
           <span className="orbit-node node-pos">
             <ShoppingBasket size={16} />
@@ -651,10 +720,10 @@ function App() {
       <aside className={`sidebar ${mobileNavOpen ? "sidebar-open" : ""}`}>
         <div className="sidebar-brand">
           <span className="brand-mark">
-            <Command size={17} />
+            <BrandGlyph size={19} />
           </span>
           <span className="brand-name">
-            northstar<span>BUSINESS OS</span>
+            Velaire<span>COMMERCE SYSTEM</span>
           </span>
           <button
             className="icon-button mobile-close"
@@ -667,7 +736,7 @@ function App() {
         <div className="store-switch">
           <span className="store-avatar">N</span>
           <span className="store-label">
-            <strong>Northstar Market</strong>
+            <strong>Velaire Market</strong>
             <small>Flagship store</small>
           </span>
           <ChevronDown size={15} />
@@ -760,7 +829,7 @@ function App() {
               <Menu size={19} />
             </button>
             <div className="breadcrumbs">
-              <span>Northstar Market</span>
+              <span>Velaire Market</span>
               <span className="crumb-separator">/</span>
               <strong>
                 {navigation.find((item) => item.id === view)?.label}
@@ -891,7 +960,7 @@ function App() {
         onClick={() => setAssistantOpen((open) => !open)}
       >
         {assistantOpen ? <X size={20} /> : <MessageCircle size={20} />}
-        <span>Ask Northstar</span>
+        <span>Ask Velaire</span>
         <span className="assistant-pulse" />
       </button>
       {assistantOpen && (
@@ -2279,7 +2348,7 @@ function ReportsView({
     link.href = URL.createObjectURL(
       new Blob([content], { type: "text/csv;charset=utf-8" }),
     );
-    link.download = "northstar-sales.csv";
+    link.download = "velaire-sales.csv";
     link.click();
     URL.revokeObjectURL(link.href);
   }
@@ -2423,13 +2492,13 @@ function AssistantPanel({
   onSuggestion: (value: string) => void;
 }) {
   return (
-    <section className="assistant-panel" aria-label="Northstar assistant">
+    <section className="assistant-panel" aria-label="Velaire assistant">
       <header className="assistant-header">
         <span className="assistant-avatar">
           <Sparkles size={17} />
         </span>
         <div>
-          <strong>Northstar assistant</strong>
+          <strong>Velaire assistant</strong>
           <small>
             <i /> Store-aware · permission checked
           </small>
@@ -2487,7 +2556,7 @@ function AssistantPanel({
           value={input}
           onChange={(event) => setInput(event.target.value)}
           placeholder="Ask about your store…"
-          aria-label="Message Northstar assistant"
+          aria-label="Message Velaire assistant"
           maxLength={500}
         />
         <button
@@ -2531,8 +2600,8 @@ function Receipt({ invoice }: { invoice: Invoice }) {
   return (
     <div className="receipt">
       <div className="receipt-header">
-        <Command size={19} />
-        <span>NORTHSTAR MARKET</span>
+        <BrandGlyph size={22} />
+        <span>VELAIRE MARKET</span>
         <small>SALE RECEIPT</small>
       </div>
       <div className="receipt-meta">

@@ -1,6 +1,6 @@
-# Northstar Business OS
+# Velaire Commerce System
 
-A roadmap-aligned retail operations demo connecting checkout, inventory movements, analytics, explainable machine-learning forecasts, and a grounded task assistant.
+Velaire is a retail operations system connecting checkout, inventory movements, analytics, explainable machine-learning forecasts, and a grounded task assistant.
 
 ## Run locally
 
@@ -12,8 +12,7 @@ Prerequisites: Node.js 20+, Python 3.11+, npm, and Docker Desktop (optional for 
 4. Open the app at `http://localhost:8080`; API documentation is at `http://localhost:8000/docs`.
 5. To run the frontend in Vite for development instead, use `cd frontend`, `npm install`, `npm run dev`; it serves `http://localhost:5173` and proxies `/api` to the local API.
 
-Demo account when demo seeding is enabled: `manager@example.com` / `Demo123!` (development seed only; keep `SEED_DEMO_DATA=false` in a public deployment).
-Local admin signup invite used by the running demo: `northstar-local-admin-2026`. This is intentionally a development-only value; replace it with a long random secret before deploying.
+Demo account when demo seeding is enabled: `manager@example.com` / `Demo123!` (development seed only; keep `SEED_DEMO_DATA=false` in a public deployment). The sign-in form does not prefill demo credentials.
 
 ## Account setup
 
@@ -30,7 +29,7 @@ Without Docker, create a Python 3.11+ virtual environment, install `backend/requ
 
 The starter model fixture is synthetic. Its metrics are for demonstration and must not be presented as real retail validation. Replace it with a documented, licensed dataset, compare candidates on the same time-based holdout, and report limitations. Assistant actions are deliberately rule-based and permission checked; there is no external LLM dependency. This demo does not process payment cards, provide accounting/tax advice, or establish production multi-tenant isolation.
 
-A live public deployment cannot be created without access to your hosting provider, owned project, database credentials, domain (if used), and user-provided secrets. Compose is the deployment-ready starting point; configure TLS, strong secrets, restricted CORS, migrations, backups, logs/alerts, rate limits, and a recovery test before real use.
+A public deployment has not been configured. To publish it, provision a host for the frontend, API, and persistent PostgreSQL database, then set the production URLs and secrets described above. Compose is the deployment-ready starting point; configure TLS, strong secrets, restricted CORS, migrations, backups, logs/alerts, rate limits, and a recovery test before real use.
 
 ## Docs
 
