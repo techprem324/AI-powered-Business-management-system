@@ -21,7 +21,27 @@ class SignupRequest(BaseModel):
     email: EmailStr
     password: Annotated[str, Field(min_length=10, max_length=128)]
     account_type: Literal["user", "admin"] = "user"
-    admin_signup_code: str | None = Field(default=None, min_length=1, max_length=200)
+    invitation_code: str | None = Field(default=None, min_length=1, max_length=100)
+
+
+class InvitationCreate(BaseModel):
+    email: EmailStr
+    role: Literal["admin", "cashier"]
+
+
+class InvitationOut(BaseModel):
+    id: str
+    email: str
+    role: str
+    created_at: datetime
+    expires_at: datetime
+    used_at: datetime | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class InvitationIssued(InvitationOut):
+    code: str
 
 
 class UserOut(BaseModel):

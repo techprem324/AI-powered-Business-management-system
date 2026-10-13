@@ -2,6 +2,7 @@ from collections import Counter, defaultdict
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, ROUND_HALF_UP
+import hashlib
 import hmac
 import os
 import random
@@ -13,15 +14,15 @@ from authlib.integrations.starlette_client import OAuth
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 from starlette.middleware.sessions import SessionMiddleware
 
 from . import ml
 from .database import Base, SessionLocal, engine, get_db
-from .models import Customer, Invoice, InvoiceItem, PredictionLog, Product, StockMovement, Supplier, User, utcnow
-from .schemas import AssistantRequest, CheckoutRequest, InvoiceOut, LoginRequest, ProductCreate, ProductOut, ProductUpdate, SignupRequest, StockAdjustmentIn, SupplierCreate, SupplierOut, TokenResponse, UserOut
+from .models import Customer, Invitation, Invoice, InvoiceItem, PredictionLog, Product, StockMovement, Supplier, User, utcnow
+from .schemas import AssistantRequest, CheckoutRequest, InvitationCreate, InvitationIssued, InvitationOut, InvoiceOut, LoginRequest, ProductCreate, ProductOut, ProductUpdate, SignupRequest, StockAdjustmentIn, SupplierCreate, SupplierOut, TokenResponse, UserOut
 from .security import create_access_token, decode_access_token, get_current_user, hash_password, require_roles, verify_password
 
 
@@ -237,22 +238,83 @@ def auth_providers():
     return {"email_password": True, "google": GOOGLE_OAUTH_ENABLED}
 
 
-@app.post("/api/auth/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-def signup(payload: SignupRequest, db: Session = Depends(get_db)):
-    role = "cashier"
-    if payload.account_type == "admin":
-        configured_code = os.getenv("ADMIN_SIGNUP_CODE", "")
-        if not configured_code or not payload.admin_signup_code or not hmac.compare_digest(configured_code, payload.admin_signup_code):
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="A valid admin invitation code is required")
-        role = "admin"
+@app.get("/api/admin/invitations", response_model=list[InvitationOut])
+def list_invitations(
+    _admin: User = Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
+):
+    return db.scalars(select(Invitation).order_by(Invitation.created_at.desc()).limit(50)).all()
 
+
+@app.post("/api/admin/invitations", response_model=InvitationIssued, status_code=status.HTTP_201_CREATED)
+def create_invitation(
+    payload: InvitationCreate,
+    admin: User = Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
+):
     normalized_email = str(payload.email).strip().lower()
     if db.scalar(select(User.id).where(func.lower(User.email) == normalized_email)):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="An account with this email already exists")
+    code = f"VL-{secrets.token_urlsafe(32)}"
+    invitation = Invitation(
+        email=normalized_email,
+        role=payload.role,
+        code_hash=hashlib.sha256(code.encode()).hexdigest(),
+        created_by=admin.id,
+        expires_at=utcnow() + timedelta(days=7),
+    )
+    db.add(invitation)
+    db.commit()
+    db.refresh(invitation)
+    return {**InvitationOut.model_validate(invitation).model_dump(), "code": code}
+
+
+@app.post("/api/auth/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+def signup(payload: SignupRequest, db: Session = Depends(get_db)):
+    normalized_email = str(payload.email).strip().lower()
+
+    role = "admin" if payload.account_type == "admin" else "cashier"
+    invitation = None
+    if payload.account_type == "admin" and not payload.invitation_code:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="A valid admin invitation is required")
+    if payload.invitation_code:
+        code_hash = hashlib.sha256(payload.invitation_code.encode()).hexdigest()
+        invitation = db.scalar(select(Invitation).where(Invitation.code_hash == code_hash))
+        if (
+            invitation is None
+            or not hmac.compare_digest(invitation.code_hash, code_hash)
+            or invitation.email != normalized_email
+            or invitation.role != role
+            or invitation.used_at is not None
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="This invitation is invalid, expired, already used, or issued for another email or role",
+            )
 
     user = User(name=payload.name.strip(), email=normalized_email, role=role, password_hash=hash_password(payload.password))
     db.add(user)
     try:
+        if invitation is not None:
+            used_at = utcnow()
+            result = db.execute(
+                update(Invitation)
+                .where(
+                    Invitation.id == invitation.id,
+                    Invitation.used_at.is_(None),
+                    Invitation.expires_at > used_at,
+                    Invitation.email == normalized_email,
+                    Invitation.role == role,
+                )
+                .values(used_at=used_at)
+                .execution_options(synchronize_session=False)
+            )
+            if result.rowcount != 1:
+                db.rollback()
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="This invitation has expired or has already been used",
+                )
         db.commit()
     except IntegrityError as exc:
         db.rollback()

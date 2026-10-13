@@ -1,4 +1,4 @@
-.auth-brand{display:flex;align-items:center;gap:12px;margin-bottom:34px}
+.auth-brand{display:flex;align-items:center;gap:12px;margin-bottom:34px;text-decoration:none}
 .auth-brand .brand-mark-large{width:42px;height:42px;margin:0;border-radius:9px}
 .auth-brand .brand-name{color:#26382e;font-size:18px;letter-spacing:.1px}
 .auth-brand .brand-name span{color:#879188;font-size:8px;letter-spacing:1.2px}
@@ -25,11 +25,23 @@
 .login-form input::placeholder{color:#a1a69f}
 .login-form input:hover,.login-form select:hover{border-color:#b8c6b8}
 .login-form input:focus,.login-form select:focus{border-color:#5c8c6d;outline:2px solid #4f8a7026;outline-offset:1px}
+.password-input-wrap{position:relative;display:block}
+.login-form .password-input-wrap input{padding-right:75px}
+.password-action{position:absolute;top:50%;right:9px;display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:29px;padding:0 5px;border:0;border-radius:4px;color:#657568;background:transparent;cursor:pointer;font-size:10px;transform:translateY(-50%)}
+.password-action:hover{color:#28563c;background:#eef3ed}
+.field-hint{color:#7f877d;font-size:10px;font-weight:400;line-height:1.5}
+.field-hint code{color:#355e45;font-size:10px}
 .login-form .login-submit{width:100%;min-height:45px;margin-top:3px;border-radius:5px;font-size:12px}
 .form-error{padding:10px 11px;border:1px solid #e9cfc1;border-radius:5px;color:#a4543e;background:#fff5ef;font-size:11px}
 .login-hint{display:flex;gap:7px;margin-top:13px;color:#81877e;font-size:10px;line-height:1.5}
 .login-hint svg{flex:none;margin-top:1px;color:#62816a}
 .login-aside .orbit-center{border-radius:50%}
+.back-arrow{transform:rotate(180deg)}
+.sidebar-brand-row{display:flex;align-items:center;justify-content:space-between}
+.sidebar-brand-home{width:100%;padding:0 8px;border:0;color:inherit;background:transparent;cursor:pointer;text-align:left}
+.sidebar-brand-home:hover .brand-mark{background:#5a9273}
+.back-button{flex:none;margin-right:8px;border-color:#e8e8df;color:#596159;background:#fff}
+.back-button:hover{border-color:#ccd6c9;background:#f2f5ef}
 @media(max-width:800px){
   .login-shell{grid-template-columns:1fr}
   .login-panel{width:min(100%,520px);min-height:100svh;padding:38px 32px}

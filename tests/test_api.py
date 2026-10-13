@@ -99,15 +99,33 @@ def test_private_routes_require_authentication(client: TestClient):
 
 
 def test_signup_role_gate_and_google_provider_status(client: TestClient, monkeypatch):
-    monkeypatch.delenv("ADMIN_SIGNUP_CODE", raising=False)
     admin_signup = client.post("/api/auth/signup", json={
         "name": "Uninvited Admin",
         "email": "uninvited@example.com",
         "password": "StrongPass123!",
         "account_type": "admin",
-        "admin_signup_code": "not-configured",
     })
     assert admin_signup.status_code == 403
+    monkeypatch.setenv("ADMIN_SIGNUP_CODE", "legacy-shared-code")
+    legacy_code_signup = client.post("/api/auth/signup", json={
+        "name": "Legacy Code Admin",
+        "email": "legacy.code@example.com",
+        "password": "StrongPass123!",
+        "account_type": "admin",
+        "invitation_code": "legacy-shared-code",
+    })
+    assert legacy_code_signup.status_code == 403
+
+    manager_token = sign_in(client, "manager@example.com")
+    manager_headers = {"Authorization": f"Bearer {manager_token}"}
+    cashier_token = sign_in(client, "cashier@example.com")
+    cashier_headers = {"Authorization": f"Bearer {cashier_token}"}
+    denied_invitation = client.post(
+        "/api/admin/invitations",
+        json={"email": "denied.invite@example.com", "role": "admin"},
+        headers=cashier_headers,
+    )
+    assert denied_invitation.status_code == 403
 
     user_signup = client.post("/api/auth/signup", json={
         "name": "New Cashier",
@@ -120,16 +138,71 @@ def test_signup_role_gate_and_google_provider_status(client: TestClient, monkeyp
         "Authorization": f"Bearer {user_signup.json()['access_token']}"
     }).json()["email"] == "new.cashier@example.com"
 
-    monkeypatch.setenv("ADMIN_SIGNUP_CODE", "single-workspace-admin-invite")
+    invitation = client.post(
+        "/api/admin/invitations",
+        json={"email": "workspace.admin@example.com", "role": "admin"},
+        headers=manager_headers,
+    )
+    assert invitation.status_code == 201
+    invitation_data = invitation.json()
+    assert invitation_data["email"] == "workspace.admin@example.com"
+    assert invitation_data["role"] == "admin"
+    assert len(invitation_data["code"]) == 46
+
+    invitations = client.get("/api/admin/invitations", headers=manager_headers)
+    assert invitations.status_code == 200
+    assert invitation_data["code"] not in str(invitations.json())
+
+    wrong_email = client.post("/api/auth/signup", json={
+        "name": "Wrong Recipient",
+        "email": "different.email@example.com",
+        "password": "StrongPass123!",
+        "account_type": "admin",
+        "invitation_code": invitation_data["code"],
+    })
+    assert wrong_email.status_code == 403
+
     invited_admin = client.post("/api/auth/signup", json={
         "name": "Workspace Admin",
         "email": "workspace.admin@example.com",
         "password": "StrongPass123!",
         "account_type": "admin",
-        "admin_signup_code": "single-workspace-admin-invite",
+        "invitation_code": invitation_data["code"],
     })
     assert invited_admin.status_code == 201
     assert invited_admin.json()["user"]["role"] == "admin"
+
+    reused_invitation = client.post("/api/auth/signup", json={
+        "name": "Invitation Reuse",
+        "email": "workspace.admin@example.com",
+        "password": "StrongPass123!",
+        "account_type": "admin",
+        "invitation_code": invitation_data["code"],
+    })
+    assert reused_invitation.status_code == 403
+
+    cashier_invitation = client.post(
+        "/api/admin/invitations",
+        json={"email": "invited.cashier@example.com", "role": "cashier"},
+        headers=manager_headers,
+    )
+    assert cashier_invitation.status_code == 201
+    wrong_role = client.post("/api/auth/signup", json={
+        "name": "Wrong Role",
+        "email": "invited.cashier@example.com",
+        "password": "StrongPass123!",
+        "account_type": "admin",
+        "invitation_code": cashier_invitation.json()["code"],
+    })
+    assert wrong_role.status_code == 403
+    invited_cashier = client.post("/api/auth/signup", json={
+        "name": "Invited Cashier",
+        "email": "invited.cashier@example.com",
+        "password": "StrongPass123!",
+        "invitation_code": cashier_invitation.json()["code"],
+    })
+    assert invited_cashier.status_code == 201
+    assert invited_cashier.json()["user"]["role"] == "cashier"
 
     duplicate = client.post("/api/auth/signup", json={
         "name": "Duplicate",

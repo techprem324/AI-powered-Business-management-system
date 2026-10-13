@@ -10,8 +10,11 @@ import {
   ChevronDown,
   CircleHelp,
   Clock3,
+  Copy,
   CreditCard,
   Download,
+  Eye,
+  EyeOff,
   FileBarChart,
   LayoutDashboard,
   LoaderCircle,
@@ -53,6 +56,8 @@ import {
   type AuthProviders,
   type DashboardData,
   type ForecastData,
+  type Invitation,
+  type InvitationIssued,
   type Invoice,
   type Product,
   type SignupPayload,
@@ -61,8 +66,9 @@ import {
 import "./App.css";
 import "./Auth.css";
 import "./DemandEvaluation.css";
+import "./Settings.css";
 
-type View = "dashboard" | "pos" | "inventory" | "forecast" | "reports";
+type View = "dashboard" | "pos" | "inventory" | "forecast" | "reports" | "settings";
 type CartLine = { product: Product; quantity: number };
 type ChatLine = { id: number; from: "assistant" | "user"; text: string };
 type DateLabels = { greeting: string; marketNote: string; topbar: string };
@@ -86,6 +92,13 @@ const navigation: {
   { id: "forecast", label: "Forecasts", icon: TrendingUp },
   { id: "reports", label: "Reports", icon: FileBarChart },
 ];
+
+const validViews: View[] = ["dashboard", "pos", "inventory", "forecast", "reports", "settings"];
+
+function viewFromLocation(): View {
+  const requestedView = new URLSearchParams(window.location.search).get("view");
+  return validViews.find((view) => view === requestedView) ?? "dashboard";
+}
 
 const chartColors = [
   "#176b57",
@@ -187,7 +200,8 @@ function LoginScreen({
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [accountType, setAccountType] = useState<"user" | "admin">("user");
-  const [adminSignupCode, setAdminSignupCode] = useState("");
+  const [invitationCode, setInvitationCode] = useState("");
+  const [showPasswords, setShowPasswords] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -207,7 +221,7 @@ function LoginScreen({
           email,
           password,
           account_type: accountType,
-          ...(accountType === "admin" ? { admin_signup_code: adminSignupCode } : {}),
+          ...(invitationCode ? { invitation_code: invitationCode } : {}),
         });
       }
     } catch (cause) {
@@ -220,14 +234,14 @@ function LoginScreen({
   return (
     <main className="login-shell">
       <section className="login-panel">
-        <div className="auth-brand">
+        <a className="auth-brand" href="/" aria-label="Velaire home">
           <span className="brand-mark brand-mark-large">
             <BrandGlyph size={23} />
           </span>
           <span className="brand-name">
             Velaire<span>COMMERCE SYSTEM</span>
           </span>
-        </div>
+        </a>
         <p className="eyebrow">RETAIL OPERATIONS, REIMAGINED</p>
         <h1>
           Good business,
@@ -270,7 +284,8 @@ function LoginScreen({
               setEmail("");
               setPassword("");
               setConfirmPassword("");
-              setAdminSignupCode("");
+              setInvitationCode("");
+              setShowPasswords(false);
             }}
           >
             Create account
@@ -304,18 +319,74 @@ function LoginScreen({
           </label>
           <label>
             Password
-            <input
-              type="password"
-              autoComplete={mode === "signin" ? "current-password" : "new-password"}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              minLength={mode === "signin" ? 8 : 10}
-              required
-            />
+            <span className="password-input-wrap">
+              <input
+                type={showPasswords ? "text" : "password"}
+                autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                minLength={mode === "signin" ? 8 : 10}
+                required
+              />
+              {mode === "signup" && (
+                <button
+                  className="password-action"
+                  type="button"
+                  aria-label={showPasswords ? "Hide passwords" : "Show passwords"}
+                  onClick={() => setShowPasswords((visible) => !visible)}
+                >
+                  {showPasswords ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showPasswords ? "Hide" : "Show"}
+                </button>
+              )}
+            </span>
           </label>
-          {mode === "signup" && <label>Confirm password<input type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} minLength={10} required /></label>}
-          {mode === "signup" && <label>Account type<select value={accountType} onChange={(event) => setAccountType(event.target.value as "user" | "admin")}><option value="user">User</option><option value="admin">Admin · invite required</option></select></label>}
-          {mode === "signup" && accountType === "admin" && <label>Admin invitation code<input type="password" autoComplete="off" value={adminSignupCode} onChange={(event) => setAdminSignupCode(event.target.value)} required /></label>}
+          {mode === "signup" && (
+            <label>
+              Confirm password
+              <input
+                type={showPasswords ? "text" : "password"}
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                minLength={10}
+                required
+              />
+            </label>
+          )}
+          {mode === "signup" && (
+            <label>
+              Account type
+              <select
+                value={accountType}
+                onChange={(event) => {
+                  setAccountType(event.target.value as "user" | "admin");
+                  setInvitationCode("");
+                }}
+              >
+                <option value="user">User · cashier access</option>
+                <option value="admin">Admin · invitation required</option>
+              </select>
+            </label>
+          )}
+          {mode === "signup" && accountType === "admin" && (
+            <label>
+              Admin invitation code
+              <input
+                type="text"
+                autoComplete="off"
+                value={invitationCode}
+                onChange={(event) => setInvitationCode(event.target.value.trim())}
+                minLength={46}
+                maxLength={46}
+                placeholder="VL-..."
+                required
+              />
+              <span className="field-hint">
+                One-time, email-bound and case-sensitive. Format: <code>VL-</code> plus 43 characters (A–Z, a–z, 0–9, hyphen or underscore). Expires in 7 days.
+              </span>
+            </label>
+          )}
           {(error || externalError) && (
             <div className="form-error" role="alert">
               {error || externalError}
@@ -380,9 +451,162 @@ function LoginScreen({
   );
 }
 
+function SettingsView({ onHome }: { onHome: () => void }) {
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<Invitation["role"]>("cashier");
+  const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [issuedInvitation, setIssuedInvitation] = useState<InvitationIssued | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void api.invitations().then((result) => {
+      if (active) setInvitations(result);
+    }).catch((cause) => {
+      if (active) setError(friendlyError(cause));
+    }).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setError("");
+    setCopied(false);
+    try {
+      const invitation = await api.createInvitation(email, role);
+      setIssuedInvitation(invitation);
+      setInvitations((current) => [invitation, ...current].slice(0, 50));
+      setEmail("");
+    } catch (cause) {
+      setError(friendlyError(cause));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function copyCode() {
+    if (!issuedInvitation) return;
+    try {
+      await navigator.clipboard.writeText(issuedInvitation.code);
+      setCopied(true);
+    } catch (cause) {
+      setError(`Could not copy invitation code: ${friendlyError(cause)}`);
+    }
+  }
+
+  return (
+    <section className="settings-view view-stack page-enter">
+      <div className="page-heading">
+        <div>
+          <p className="eyebrow">WORKSPACE ACCESS</p>
+          <h1>Team invitations</h1>
+          <p className="page-subtitle">Create secure, single-use invitations for specific teammates.</p>
+        </div>
+        <button className="button button-secondary" type="button" onClick={onHome}>
+          <ArrowRight className="back-arrow" size={15} /> Back to overview
+        </button>
+      </div>
+
+      <div className="settings-grid">
+        <section className="surface invite-card">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">NEW INVITATION</p>
+              <h2>Invite a teammate</h2>
+            </div>
+            <span className="invite-icon"><ShieldCheck size={18} /></span>
+          </div>
+          <p className="settings-copy">
+            Each invitation is tied to one email address, grants one role, and can be used once within 7 days.
+          </p>
+          <form className="invite-form" onSubmit={(event) => void submit(event)}>
+            <label>
+              Teammate email
+              <input
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="teammate@example.com"
+                required
+              />
+            </label>
+            <label>
+              Access level
+              <select value={role} onChange={(event) => setRole(event.target.value as Invitation["role"])}>
+                <option value="cashier">Cashier — sales workspace access</option>
+                <option value="admin">Admin — management access</option>
+              </select>
+            </label>
+            {error && <div className="form-error" role="alert">{error}</div>}
+            <button className="button button-primary" type="submit" disabled={busy}>
+              {busy ? <LoaderCircle className="spin" size={16} /> : <Users size={16} />}
+              Create invitation
+            </button>
+          </form>
+          {issuedInvitation && (
+            <div className="issued-invitation" role="status">
+              <strong>Send this code to {issuedInvitation.email}</strong>
+              <p>This code is shown only once. Never share your own password or sign-in session.</p>
+              <div className="invite-code-row">
+                <code>{issuedInvitation.code}</code>
+                <button className="button button-secondary" type="button" onClick={() => void copyCode()}>
+                  {copied ? <Check size={15} /> : <Copy size={15} />}
+                  {copied ? "Copied" : "Copy code"}
+                </button>
+              </div>
+              <small>Case-sensitive · Expires {new Date(issuedInvitation.expires_at).toLocaleString()}</small>
+            </div>
+          )}
+        </section>
+
+        <section className="surface invitations-card">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">ACCESS CONTROL</p>
+              <h2>Recent invitations</h2>
+            </div>
+          </div>
+          {loading ? (
+            <div className="invitation-empty"><LoaderCircle className="spin" size={18} /> Loading invitations</div>
+          ) : invitations.length ? (
+            <div className="invitation-list">
+              {invitations.map((invitation) => (
+                <article className="invitation-row" key={invitation.id}>
+                  <span className="invitation-avatar"><Users size={15} /></span>
+                  <span className="invitation-details">
+                    <strong>{invitation.email}</strong>
+                    <small>{invitation.role === "admin" ? "Admin" : "Cashier"} · Expires {new Date(invitation.expires_at).toLocaleDateString()}</small>
+                  </span>
+                  <span className={`invitation-status ${invitation.used_at ? "used" : "pending"}`}>
+                    {invitation.used_at ? "Used" : "Pending"}
+                  </span>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className="invitation-empty">No invitations yet. New teammate access will appear here.</p>
+          )}
+          <p className="access-note">
+            Invitations grant access only inside this Velaire workspace, according to the selected role. They do not grant access to your device or local files.
+          </p>
+        </section>
+      </div>
+    </section>
+  );
+}
+
 function App() {
   const [user, setUser] = useState<User | null>(null);
-  const [view, setView] = useState<View>("dashboard");
+  const [view, setView] = useState<View>(viewFromLocation);
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -533,6 +757,18 @@ function App() {
   }, []);
 
   useEffect(() => {
+    function handlePopState() {
+      const nextView = viewFromLocation();
+      setView(nextView);
+      setMobileNavOpen(false);
+      setPageError("");
+      if (nextView === "forecast") void loadForecast(horizon);
+    }
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [horizon]);
+
+  useEffect(() => {
     if (!toast) return;
     const timer = window.setTimeout(() => setToast(""), 3200);
     return () => window.clearTimeout(timer);
@@ -565,10 +801,23 @@ function App() {
   }
 
   function navigate(nextView: View) {
+    if (nextView !== view) {
+      const url = new URL(window.location.href);
+      url.searchParams.set("view", nextView);
+      window.history.pushState({ view: nextView }, "", url);
+    }
     setView(nextView);
     setMobileNavOpen(false);
     setPageError("");
     if (nextView === "forecast" && !forecast) void loadForecast(horizon);
+  }
+
+  function goBack() {
+    if (window.history.state?.view === view) {
+      window.history.back();
+    } else {
+      navigate("dashboard");
+    }
   }
 
   function addToCart(product: Product) {
@@ -702,6 +951,10 @@ function App() {
   function signOut() {
     api.logout();
     setUser(null);
+    setView("dashboard");
+    window.history.replaceState({ view: "dashboard" }, "", window.location.pathname);
+    setView("dashboard");
+    window.history.replaceState({ view: "dashboard" }, "", window.location.pathname);
     setDashboard(null);
     setForecast(null);
     setChat([
@@ -718,13 +971,20 @@ function App() {
   return (
     <div className="app-shell">
       <aside className={`sidebar ${mobileNavOpen ? "sidebar-open" : ""}`}>
-        <div className="sidebar-brand">
-          <span className="brand-mark">
-            <BrandGlyph size={19} />
-          </span>
-          <span className="brand-name">
-            Velaire<span>COMMERCE SYSTEM</span>
-          </span>
+        <div className="sidebar-brand-row">
+          <button
+            className="sidebar-brand sidebar-brand-home"
+            type="button"
+            aria-label="Velaire home"
+            onClick={() => navigate("dashboard")}
+          >
+            <span className="brand-mark">
+              <BrandGlyph size={19} />
+            </span>
+            <span className="brand-name">
+              Velaire<span>COMMERCE SYSTEM</span>
+            </span>
+          </button>
           <button
             className="icon-button mobile-close"
             aria-label="Close navigation"
@@ -764,9 +1024,11 @@ function App() {
         </nav>
         <p className="nav-heading nav-heading-lower">MANAGE</p>
         <button
-          className="nav-item"
+          className={`nav-item ${view === "settings" ? "nav-item-active" : ""}`}
           onClick={() =>
-            setToast("Store settings are managed by an administrator")
+            user.role === "admin"
+              ? navigate("settings")
+              : setToast("Store settings are managed by an administrator")
           }
         >
           <Settings2 size={17} strokeWidth={1.8} />
@@ -821,6 +1083,17 @@ function App() {
       <main className="main-area">
         <header className="topbar">
           <div className="topbar-left">
+            {view !== "dashboard" && (
+              <button
+                className="icon-button back-button"
+                type="button"
+                aria-label="Go back"
+                title="Go back"
+                onClick={goBack}
+              >
+                <ArrowRight className="back-arrow" size={16} />
+              </button>
+            )}
             <button
               className="icon-button mobile-menu"
               aria-label="Open navigation"
@@ -832,7 +1105,7 @@ function App() {
               <span>Velaire Market</span>
               <span className="crumb-separator">/</span>
               <strong>
-                {navigation.find((item) => item.id === view)?.label}
+                {navigation.find((item) => item.id === view)?.label ?? "Settings"}
               </strong>
             </div>
           </div>
@@ -950,6 +1223,9 @@ function App() {
                 window.setTimeout(() => window.print(), 100);
               }}
             />
+          )}
+          {view === "settings" && user.role === "admin" && (
+            <SettingsView onHome={() => navigate("dashboard")} />
           )}
         </div>
       </main>

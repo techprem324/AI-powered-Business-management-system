@@ -12,7 +12,20 @@ export interface SignupPayload {
   email: string
   password: string
   account_type: 'user' | 'admin'
-  admin_signup_code?: string
+  invitation_code?: string
+}
+
+export interface Invitation {
+  id: string
+  email: string
+  role: 'admin' | 'cashier'
+  created_at: string
+  expires_at: string
+  used_at: string | null
+}
+
+export interface InvitationIssued extends Invitation {
+  code: string
 }
 
 export interface AuthProviders {
@@ -192,6 +205,15 @@ export const api = {
   },
   async me() {
     return request<User>('/auth/me')
+  },
+  invitations() {
+    return request<Invitation[]>('/admin/invitations')
+  },
+  createInvitation(email: string, role: Invitation['role']) {
+    return request<InvitationIssued>('/admin/invitations', {
+      method: 'POST',
+      body: JSON.stringify({ email, role }),
+    })
   },
   logout() {
     localStorage.removeItem(SESSION_KEY)
