@@ -2,15 +2,22 @@
 
 Velaire is a retail operations system connecting checkout, inventory movements, analytics, explainable machine-learning forecasts, and a grounded task assistant.
 
-## Run locally
+## Run locally on Windows
 
-Prerequisites: Node.js 20+, Python 3.11+, npm, and Docker Desktop (optional for PostgreSQL). For a quick local API run, set up the backend environment and use SQLite; for the PostgreSQL path run Compose.
+Install Node.js 20+ and Python 3.11+ once. From the repository folder, run:
 
-1. Clone this repository and copy `.env.example` to `.env`.
-2. Change `SECRET_KEY`, `POSTGRES_PASSWORD`, and `ADMIN_SIGNUP_CODE`; set `SEED_DEMO_DATA=true` only for a local demo.
-3. Start the complete stack: `docker compose up --build -d`.
-4. Open the app at `http://localhost:8080`; API documentation is at `http://localhost:8000/docs`.
-5. To run the frontend in Vite for development instead, use `cd frontend`, `npm install`, `npm run dev`; it serves `http://localhost:5173` and proxies `/api` to the local API.
+```powershell
+.\start-local.ps1
+```
+
+On first run the script creates a backend virtual environment and installs any missing frontend dependencies. It starts the API with a local SQLite database and demo data, starts the frontend, waits for both services, and opens the app in your browser. Subsequent runs reuse the installed dependencies and existing local database.
+
+- App: `http://127.0.0.1:5174`
+- API docs: `http://127.0.0.1:8000/docs`
+- Demo login: `manager@example.com` / `Demo123!`
+- Stop the local services: `.\stop-local.ps1`
+
+Local logs and process IDs are stored in the ignored `.local` directory. The local SQLite database is `backend/velaire-local.db`. For the Docker/PostgreSQL setup, use `docker compose up --build -d` after configuring `.env`.
 
 Demo account when demo seeding is enabled: `manager@example.com` / `Demo123!` (development seed only; keep `SEED_DEMO_DATA=false` in a public deployment). The sign-in form does not prefill demo credentials.
 
