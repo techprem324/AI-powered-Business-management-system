@@ -1,29 +1,29 @@
 # Velaire Commerce System
 
-**An AI-powered retail operations and business management platform** connecting point-of-sale operations, inventory management, business analytics, explainable machine-learning forecasts, and an intelligent task assistant.
+**An AI-Powered Retail Operations & Business Management Platform**
+
+Velaire is a centralized retail operations platform that connects point-of-sale operations, inventory management, business analytics, explainable machine-learning forecasts, and an intelligent task assistant.
 
 ---
 
 ## Overview
 
-Velaire is a retail operations system designed to bring essential business activities into one centralized platform.
+Velaire is designed to simplify and centralize essential business operations through a unified management system.
 
-It combines checkout management, inventory tracking, sales analytics, machine-learning-based forecasting, and a grounded task assistant to help businesses understand their operations and make better decisions.
+It combines checkout management, inventory tracking, sales analytics, machine-learning-based forecasting, and an intelligent task assistant to help businesses monitor performance, understand operational trends, and make better decisions.
 
 ## Key Features
 
-- **Role-Based Authentication:** Role-aware sign-in, dashboards, and administrator-managed invitations.
-- **Point of Sale (POS):** Checkout operations with atomic transactions.
+- **Role-Based Authentication:** Role-aware authentication, dedicated dashboards, and administrator-managed invitations.
+- **Point of Sale (POS):** Checkout management with atomic database transactions.
 - **Inventory Management:** Product, supplier, stock, and invoice management.
-- **Stock Movement Tracking:** Inventory movement ledger and stock monitoring.
-- **Business Analytics:** Sales, operational insights, and performance analytics.
-- **Machine Learning:** Model comparison and explainable inventory forecasts.
+- **Stock Movement Tracking:** Inventory movement ledger and real-time stock monitoring.
+- **Business Analytics:** Sales reporting, operational insights, and performance analytics.
+- **Machine Learning:** Model comparison and explainable inventory forecasting.
 - **AI Task Assistant:** Inventory FAQs and permission-checked operational tasks.
 - **Responsive Interface:** Dedicated POS, operations dashboard, inventory, and forecasting views.
 
-## Technology & Architecture
-
-Velaire combines a modern web frontend with a Python backend and database infrastructure.
+## Technology Stack
 
 | Layer | Technology |
 |---|---|
@@ -32,20 +32,24 @@ Velaire combines a modern web frontend with a Python backend and database infras
 | Database | SQLite / PostgreSQL |
 | Machine Learning | Synthetic starter model fixtures |
 | API Documentation | FastAPI / Swagger UI |
+| Database Migrations | Alembic |
 | Containerization | Docker & Docker Compose |
 
-**Architecture highlights:**
+### Architecture Highlights
+
 - React production container with API proxy.
-- PostgreSQL deployment through Docker Compose.
+- PostgreSQL deployment using Docker Compose.
 - SQLite fallback for local development.
-- Database migrations using Alembic.
+- Database schema management through Alembic migrations.
 - Documented system architecture and implementation plan.
+
+---
 
 ## Getting Started
 
 ### Prerequisites
 
-Install the following before running the application:
+Install the following tools before running the application:
 
 - Node.js 20+
 - Python 3.11+
@@ -53,7 +57,7 @@ Install the following before running the application:
 
 ### Run Locally on Windows
 
-Clone the repository:
+**1. Clone the repository**
 
 ```powershell
 git clone https://github.com/techprem324/AI-powered-Business-management-system.git
@@ -61,7 +65,7 @@ git clone https://github.com/techprem324/AI-powered-Business-management-system.g
 cd AI-powered-Business-management-system
 ```
 
-Start the application:
+**2. Start the application**
 
 ```powershell
 .\start-local.ps1
@@ -85,14 +89,14 @@ Subsequent runs reuse installed dependencies and the existing local database.
 | Application | http://127.0.0.1:5174 |
 | API Documentation | http://127.0.0.1:8000/docs |
 
-**Demo Login (Development Only)**
+### Demo Login (Development Only)
 
 ```text
 Email: manager@example.com
 Password: Demo123!
 ```
 
-Stop local services:
+**Stop local services:**
 
 ```powershell
 .\stop-local.ps1
@@ -106,15 +110,19 @@ The local SQLite database is located at:
 backend/velaire-local.db
 ```
 
+---
+
 ## Docker & PostgreSQL Setup
 
-For the Docker-based PostgreSQL configuration:
+To start the Docker-based PostgreSQL configuration:
 
 ```bash
 docker compose up --build -d
 ```
 
-Configure the required environment variables in `.env` before starting the containers.
+Configure the required environment variables in your `.env` file before starting the containers.
+
+---
 
 ## Account Setup & Authentication
 
@@ -150,7 +158,7 @@ PUBLIC_API_BASE_URL=http://127.0.0.1:8000
 FRONTEND_URL=http://127.0.0.1:5173
 ```
 
-For production, use public HTTPS URLs for the callback, API, and frontend, and set:
+For production, use public HTTPS URLs for the callback, API, and frontend, and configure:
 
 ```env
 COOKIE_SECURE=true
@@ -158,57 +166,69 @@ COOKIE_SECURE=true
 
 Email/password authentication remains available without Google OAuth credentials.
 
+---
+
 ## Manual Backend Setup (Without Docker)
 
-Create a Python 3.11+ virtual environment and install the backend requirements:
+**1. Install backend dependencies**
+
+Create a Python 3.11+ virtual environment and install the requirements:
 
 ```bash
 pip install -r backend/requirements.txt
 ```
 
-Configure the environment:
+**2. Configure environment variables**
 
 ```env
 DATABASE_URL=sqlite:///./northstar.db
 SEED_DEMO_DATA=true
 ```
 
-Run database migrations:
+**3. Run database migrations**
 
 ```bash
 alembic -c backend/alembic.ini upgrade head
 ```
 
-Start the backend:
+**4. Start the backend**
 
 ```bash
 uvicorn app.main:app --reload --app-dir backend
 ```
 
-Start the frontend separately in another terminal using the project's frontend development setup.
+**5. Start the frontend**
+
+Open another terminal and start the frontend using the project's frontend development setup.
 
 SQLite tables are also created automatically for local and test convenience.
 
+---
+
 ## Machine Learning & Forecasting
 
-Velaire includes model comparison and inventory forecasting capabilities.
+Velaire includes model comparison and inventory forecasting capabilities to demonstrate how machine learning can support retail inventory decisions.
 
-**Important:** The starter model fixture uses synthetic data. Its evaluation metrics are intended for demonstration purposes only and must not be presented as real-world retail validation.
+**Important:** The current starter model fixture uses synthetic data. Its evaluation metrics are intended for demonstration purposes only and should not be presented as real-world retail validation.
 
 For meaningful model evaluation:
 
 - Replace synthetic data with a documented and appropriately licensed dataset.
 - Compare candidate models using the same time-based holdout.
-- Document evaluation methodology and limitations.
+- Document the evaluation methodology and limitations.
 - Report model performance transparently.
+
+---
 
 ## Project Documentation
 
-Explore the following documentation for more technical details:
+Explore the following documentation for additional technical details:
 
 - [System Architecture](docs/ARCHITECTURE.md)
 - [Implementation Plan](docs/IMPLEMENTATION_PLAN.md)
 - [Reusable Master Prompt](docs/MASTER_PROMPT.md)
+
+---
 
 ## Current Limitations
 
@@ -219,9 +239,11 @@ Explore the following documentation for more technical details:
 - Production multi-tenant isolation has not been established.
 - A public deployment has not yet been configured.
 
+---
+
 ## Production Deployment Considerations
 
-Compose provides the deployment-ready starting point. Before using Velaire in a real business environment:
+Docker Compose provides a deployment-ready starting point. Before using Velaire in a real business environment, complete the following:
 
 - Provision hosting for the frontend, API, and persistent PostgreSQL database.
 - Configure production URLs and strong application secrets.
@@ -230,16 +252,16 @@ Compose provides the deployment-ready starting point. Before using Velaire in a 
 - Set up application logs and monitoring alerts.
 - Implement appropriate rate limits.
 - Perform a database recovery test.
-- Disable demo seeding using:
+- Disable demo seeding:
 
 ```env
 SEED_DEMO_DATA=false
 ```
 
-**Never enable development demo credentials or demo seeding in a public production deployment.**
+**Security Warning:** Never enable development demo credentials or demo seeding in a public production deployment.
 
 ---
 
 ## License
 
-Add your chosen open-source license before distributing or publishing the project for reuse.
+Add your chosen open-source license before distributing or publishing this project for reuse.
