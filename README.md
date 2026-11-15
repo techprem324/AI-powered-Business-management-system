@@ -6,6 +6,24 @@ Velaire is a centralized retail operations platform that connects point-of-sale 
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Repository Structure](#repository-structure)
+- [Technology Stack](#technology-stack)
+- [Getting Started](#getting-started)
+- [Docker & PostgreSQL Setup](#docker--postgresql-setup)
+- [Account Setup & Authentication](#account-setup--authentication)
+- [Manual Backend Setup](#manual-backend-setup-without-docker)
+- [Machine Learning & Forecasting](#machine-learning--forecasting)
+- [Project Documentation](#project-documentation)
+- [Current Limitations](#current-limitations)
+- [Production Deployment](#production-deployment-considerations)
+- [License](#license)
+
+---
+
 ## Overview
 
 Velaire is designed to simplify and centralize essential business operations through a unified management system.
@@ -22,6 +40,32 @@ It combines checkout management, inventory tracking, sales analytics, machine-le
 - **Machine Learning:** Model comparison and explainable inventory forecasting.
 - **AI Task Assistant:** Inventory FAQs and permission-checked operational tasks.
 - **Responsive Interface:** Dedicated POS, operations dashboard, inventory, and forecasting views.
+
+## Repository Structure
+
+The project follows a modular structure that separates frontend, backend, documentation, and testing resources.
+
+```text
+AI-powered-Business-management-system/
+│
+├── .github/
+│   └── workflows/       # GitHub Actions workflows
+│
+├── backend/             # Python backend and API
+│
+├── frontend/            # React frontend application
+│
+├── docs/                # Project documentation
+│
+├── tests/               # Application tests
+│
+├── .env.example         # Example environment configuration
+├── docker-compose.yml   # Docker services configuration
+├── start-local.ps1      # Local startup script
+├── stop-local.ps1       # Local shutdown script
+│
+└── README.md            # Project documentation
+```
 
 ## Technology Stack
 
