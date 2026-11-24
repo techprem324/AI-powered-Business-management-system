@@ -2,7 +2,7 @@
 
 **An AI-Powered Retail Operations & Business Management Platform**
 
-Velaire is a centralizzed retail operations platform that connects point-of-sale operations, inventory management, business analytics, explainable machine-learning forecasts, and an intelligent task assistant.
+Velaire is a centralized retail operations platform that connects point-of-sale operations, inventory management, business analytics, explainable machine-learning forecasts, and an intelligent task assistant.
 
 ---
 
@@ -26,7 +26,7 @@ Velaire is a centralizzed retail operations platform that connects point-of-sale
 
 ## Overview
 
-Velaire is designed to simplify and centralize essential business operations through a unified management system.
+Velaire is designed to simplify and centralise essential business operations through a unified management system.
 
 It combines checkout management, inventory tracking, sales analytics, machine-learning-based forecasting, and an intelligent task assistant to help businesses monitor performance, understand operational trends, and make better decisions.
 
